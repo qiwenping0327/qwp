@@ -1,0 +1,86 @@
+# -*- coding: utf-8 -*-
+import numpy as np
+import pandas as pd
+import matplotlib.pylab as pl
+from scipy.integrate import odeint
+import math as ma
+pd.set_option('display.max_columns',100000)
+pd.set_option('display.max_rows',None)
+pd.set_option('display.width', 100000)
+pd.set_option('display.max_colwidth',100000)
+#用来正常显示中文标签
+plt.rcParams['font.sans-serif'] = ['FangSong']
+#用来正常显示正负号
+plt.rcParams['axes.unicode_minus'] = False
+
+'''
+#计算县的贫困发生率
+data = pd.read_excel("C:\\Users\\zqs1\\Desktop\\测试\\村指标筛选1.xlsx")#,index_col = '序号'
+bbc = data.groupby(['县分类']).mean()
+pd.DataFrame(bbc).to_excel("C:\\Users\\zqs1\\Desktop\\测试\\县指标筛选1.xlsx") 
+
+
+#计算省得贫困发生率
+data = pd.read_excel("C:\\Users\\zqs1\\Desktop\\测试\\村指标筛选1.xlsx")#,index_col = '序号'
+ddc = data.groupby(['省市县']).mean()
+pd.DataFrame(ddc).to_excel("C:\\Users\\zqs1\\Desktop\\测试\\省指标筛选1.xlsx") 
+'''
+
+data = pd.read_excel("C:\\Users\\zqs1\\Desktop\\测试\\省指标筛选1.xlsx",usecols = [2])#,index_col = '序号'
+
+
+#计算变异系数
+statistics = data.describe() # 利用里面的基本统计量计算
+
+# 变异系数
+statistics.loc["var"] = statistics.loc["std"] / statistics.loc["mean"]
+
+
+print(statistics)
+
+
+#解决matplotlib显示中文乱码问题
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
+fig, ax = plt.subplots()
+
+#计算基尼系数
+def Gini():
+    # 计算数组累计值,从 0 开始
+    wealths = data
+    cum_wealths = np.cumsum(sorted(np.append(wealths, 0)))
+    # 取最后一个，也就是原数组的和
+    sum_wealths = cum_wealths[-1]
+    # 人数的累积占比
+    xarray = np.array(range(0, len(cum_wealths))) / np.float(len(cum_wealths) - 1)
+
+    # 均衡收入曲线
+    upper = xarray
+    # 收入累积占比
+    yarray = cum_wealths / sum_wealths
+    # 绘制基尼系数对应的洛伦兹曲线
+    ax.plot(xarray, yarray)
+    ax.plot(xarray, upper)
+    ax.set_xlabel(u'贫困村数累积占比')
+    ax.set_ylabel(u'贫困发生率累积占比')
+    pl.show()
+    # 计算曲线下面积的通用方法
+    B = np.trapz(yarray, x=xarray)
+    # 总面积 0.5
+    A = 0.5 - B
+    G = A / (A + B)
+    return G
+
+a=Gini()
+print("基尼系数为：",a)
+
+#计算泰尔指数
+a = data.mean()
+b = data/a
+b.astype('float')
+
+
+c = np.log(b)
+d = b*c
+taier = d.sum()/len(d) 
+print("泰尔指数为：",taier)
