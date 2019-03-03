@@ -1,0 +1,48 @@
+# -*- coding: utf-8 -*-
+import numpy as np
+import pandas as pd
+import matplotlib.pylab as pl
+from scipy.integrate import odeint
+import math as ma
+pd.set_option('display.max_columns',100000)
+pd.set_option('display.max_rows',None)
+pd.set_option('display.width', 100000)
+pd.set_option('display.max_colwidth',100000)
+
+
+#计算县的贫困发生率
+data = pd.read_excel("C:\\Users\\zqs1\\Desktop\\测试\\村指标筛选1.xlsx")#,index_col = '序号'
+Yi = data.groupby(['省市县'])['贫困发生率（%）'].sum()#Yi 为第i省的各村之和
+yi = data.groupby(['省市县'])['贫困发生率（%）'].mean()#yi 为第i省的各村均值
+Y = data['贫困发生率（%）'].sum()
+y = data['贫困发生率（%）'].mean()
+a = Yi/Y
+b = yi/y
+b.astype('float')
+c = np.log(b)
+d = a*c
+Tbr = d.sum()
+
+Yik = data.groupby(['省市县','县分类'])['贫困发生率（%）'].sum()
+yik = data.groupby(['省市县','县分类'])['贫困发生率（%）'].mean()
+e = Yik/Y
+f = yik/yi
+f.astype('float')
+g = np.log(f)
+h = e*g
+Tbp = h.sum()
+
+YikI = data.groupby(['县分类','村代码'])['贫困发生率（%）'].sum()
+yikI = data.groupby(['县分类','村代码'])['贫困发生率（%）'].mean()
+yik1 = data.groupby(['县分类'])['贫困发生率（%）'].mean()#索引合并时要保障两边为共同索引或包含关系，即此处用yik1代替yik
+i = YikI/Y
+j = yikI/yik1
+j.astype('float')
+k = np.log(j)
+l = i*k
+Twp = l.sum()
+Td = Tbr + Tbp +Twp
+print(u'省间差异/Tbr:', Tbr,'贡献度为:',Tbr/Td)
+print(u'省内县间差异/Tbp:',Tbp,'贡献度为:',Tbp/Td)
+print(u'县内差异/Twp:', Twp,'贡献度为:',Twp/Td)
+print(u'总差异/Td:',Td)
